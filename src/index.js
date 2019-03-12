@@ -1,9 +1,9 @@
-window.global = window;
-var parcelRequire;
-
 import { $, jQuery } from 'jquery';
 import Graph from './Graph.js';
 import Genetic from './Genetic.js';
+
+window.$ = $;
+window.jQuery = jQuery;
 
 const graph = new Graph(document.getElementById('scratch'));
 const genetic = new Genetic(graph);
