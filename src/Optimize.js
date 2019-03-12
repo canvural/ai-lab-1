@@ -5,4 +5,4 @@ function Minimize(a, b) {
 	return a < b;
 }
 
-export { Maximize, Minimize };
+export default { Maximize, Minimize };
