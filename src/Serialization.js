@@ -1,13 +1,12 @@
-class Serialization {
-	static stringify(obj) {
+export default {
+	stringify: function(obj) {
 		return JSON.stringify(obj, function(key, value) {
 			if (value instanceof Function || typeof value == 'function') return '__func__:' + value.toString();
 			if (value instanceof RegExp) return '__regex__:' + value;
 			return value;
 		});
-	}
-
-	static parse(str) {
+	},
+	parse: function(str) {
 		return JSON.parse(str, function(key, value) {
 			if (typeof value != 'string') return value;
 			if (value.lastIndexOf('__func__:', 0) === 0) return eval('(' + value.slice(9) + ')');
@@ -15,6 +14,4 @@ class Serialization {
 			return value;
 		});
 	}
-}
-
-export default Serialization;
+};
