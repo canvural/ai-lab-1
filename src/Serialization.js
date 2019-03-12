@@ -1,4 +1,4 @@
-export class Serialization {
+export default class Serialization {
 	stringify(obj) {
 		return JSON.stringify(obj, function(key, value) {
 			if (value instanceof Function || typeof value == 'function') return '__func__:' + value.toString();
