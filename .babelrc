@@ -1,7 +1,7 @@
 {
   "presets": ["latest"],
   "plugins": [
-    "@babel/plugin-proposal-class-properties",
-    "transform-runtime"
+    "@babel/plugin-transform-runtime",
+    "@babel/plugin-proposal-class-properties"
   ]
 }
