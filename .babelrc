@@ -1,0 +1,15 @@
+{
+  "presets": [
+    "env",
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": "entry"
+      }
+    ]
+  ],
+  "plugins": [
+    "transform-runtime",
+    "@babel/plugin-proposal-class-properties"
+  ]
+}
