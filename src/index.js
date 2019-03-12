@@ -1,3 +1,6 @@
+window.global = window;
+var parcelRequire;
+
 import Graph from './Graph.js';
 import Genetic from './Genetic.js';
 
