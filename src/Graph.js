@@ -221,11 +221,9 @@ class Graph {
 		for (let i = 0; i < this.vertices.positive.length; ++i) {
 			ctx.fillStyle = '#000';
 			var cx =
-				this.vertices.positive[i][0] * this.grid_size +
-				this.y_axis_distance_grid_lines * this.grid_size;
+				this.vertices.positive[i][0] * this.grid_size + this.y_axis_distance_grid_lines * this.grid_size;
 			var cy =
-				this.vertices.positive[i][1] * this.grid_size * -1 +
-				this.x_axis_distance_grid_lines * this.grid_size;
+				this.vertices.positive[i][1] * this.grid_size * -1 + this.x_axis_distance_grid_lines * this.grid_size;
 
 			ctx.beginPath();
 			ctx.arc(cx, cy, 3, 0, 2 * Math.PI);
@@ -237,11 +235,9 @@ class Graph {
 		for (let i = 0; i < this.vertices.negative.length; ++i) {
 			ctx.fillStyle = 'red';
 			var cx =
-				this.vertices.negative[i][0] * this.grid_size +
-				this.y_axis_distance_grid_lines * this.grid_size;
+				this.vertices.negative[i][0] * this.grid_size + this.y_axis_distance_grid_lines * this.grid_size;
 			var cy =
-				this.vertices.negative[i][1] * this.grid_size * -1 +
-				this.x_axis_distance_grid_lines * this.grid_size;
+				this.vertices.negative[i][1] * this.grid_size * -1 + this.x_axis_distance_grid_lines * this.grid_size;
 
 			ctx.beginPath();
 			ctx.arc(cx, cy, 3, 0, 2 * Math.PI);

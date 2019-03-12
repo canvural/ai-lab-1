@@ -48,10 +48,7 @@ class Genetic {
 
 	crossOverFunctions = {
 		random: function(pop) {
-			return [
-				this.mutationSelectionFunctions.random(pop),
-				this.mutationSelectionFunctions.random(pop)
-			];
+			return [this.mutationSelectionFunctions.random(pop), this.mutationSelectionFunctions.random(pop)];
 		},
 		tournament2: function(pop) {
 			return [
@@ -60,14 +57,13 @@ class Genetic {
 			];
 		},
 		roulette: function(pop) {
-			return [
-				this.mutationSelectionFunctions.roulette(pop),
-				this.mutationSelectionFunctions.roulette(pop)
-			];
+			return [this.mutationSelectionFunctions.roulette(pop), this.mutationSelectionFunctions.roulette(pop)];
 		}
 	};
 
-	constructor() {
+	constructor(graph) {
+		this.graph = graph;
+
 		// population
 		this.fitness = null;
 		this.seed = null;
@@ -100,9 +96,30 @@ class Genetic {
 
 	// applies mutation based on mutation probability
 	mutateOrNot(entity) {
-		return Math.random() <= this.configuration.mutation && this.mutate
-			? this.mutate(Clone(entity))
-			: entity;
+		return Math.random() <= this.configuration.mutation && this.mutate ? this.mutate(Clone(entity)) : entity;
+	}
+
+	// allow chromosomal drift with this range (-0.05, 0.05)
+	// applied to randomly chosen coefficent
+	mutate(entity) {
+		var drift = (Math.random() - 0.5) * 2 * 0.2;
+
+		var i = Math.floor(Math.random() * entity.length);
+		entity[i] += drift;
+
+		return entity;
+	}
+
+	// For daughter, Takes half of father, and combines it with half of mother
+	// For son, Takes other half of mother, and combines it with other half of father
+	crossover(mother, father) {
+		var father_part = father.splice(0, Math.floor(father.length / 2));
+		var mother_part = mother.splice(0, Math.floor(mother.length / 2));
+
+		var son = mother_part.concat(father);
+		var daughter = father_part.concat(mother);
+
+		return [son, daughter];
 	}
 
 	seed() {
@@ -113,6 +130,102 @@ class Genetic {
 		}
 
 		return a;
+	}
+
+	/**
+	 * Loop through all positive vertices, if its above the polynomial, increase fitness
+	 * Loop through all negative vertices, if its below the polynomial increase fitness
+	 */
+	fitness(entity) {
+		let fitness = 0;
+		const vertices = this.userData['vertices'];
+
+		for (let i = 0; i < vertices.positive.length; ++i) {
+			if (vertices.positive[i][1] - this.constructor.evaluatePoly(entity, vertices.positive[i][0]) < 0) {
+				fitness++;
+			}
+		}
+
+		for (let i = 0; i < vertices.negative.length; ++i) {
+			if (vertices.negative[i][1] - this.constructor.evaluatePoly(entity, vertices.negative[i][0]) > 0) {
+				fitness++;
+			}
+		}
+
+		return fitness;
+	}
+
+	static evaulatePoly(coefficients, x) {
+		let s = 0;
+		let p = 1;
+		for (let i = 0; i < coefficients.length; ++i) {
+			s += p * coefficients[i];
+			p *= x;
+		}
+
+		return s;
+	}
+
+	notification(pop, generation, stats, isFinished) {
+		function poly(entity) {
+			var a = [];
+
+			for (let i = entity.length - 1; i >= 0; --i) {
+				var buf = entity[i].toPrecision(2);
+				if (i > 1) buf += '<em><b>x<sup>' + i + '<sup></b></em>';
+				else if (i === 1) buf += '<em><b>x</b></em>';
+
+				a.push(buf);
+			}
+
+			return a.join(' + ');
+		}
+
+		function lerp(a, b, p) {
+			return a + (b - a) * p;
+		}
+
+		if (generation === 0) {
+			this.graph.solutions = [];
+		}
+
+		$('#solution').html(poly(pop[0].entity));
+		$('#generation').html(generation + 1);
+		$('#bestfit').html(pop[0].fitness.toPrecision(4));
+
+		var last = this.graph.last || '';
+
+		let str = pop[0].entity.join(',');
+
+		if (last !== str || isFinished) {
+			if (last !== str) {
+				this.graph.solutions.push(pop[0].entity);
+				this.graph.last = str;
+			}
+
+			this.graph.draw();
+
+			let start = Math.max(0, this.graph.solutions.length - 10);
+
+			if (isFinished) {
+				start = 0;
+			}
+
+			for (let i = start; i < this.graph.solutions.length; ++i) {
+				let p = (i - start) / (this.graph.solutions.length - start);
+
+				let r = Math.round(lerp(90, 255, p));
+				let g = Math.round(lerp(0, 255, 0));
+				let b = Math.round(lerp(200, 50, p));
+				let alpha = lerp(0.5, 1, p);
+				let strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+				let lineWidth = Math.floor(lerp(10, 1, p));
+
+				this.graph.drawFunction(this.graph.solutions[i], strokeStyle, lineWidth);
+			}
+
+			this.graph.drawVertices();
+		}
 	}
 
 	start() {
@@ -161,9 +274,7 @@ class Genetic {
 
 			if (
 				this.notification &&
-				(isFinished ||
-					this.configuration['skip'] === 0 ||
-					i % this.configuration['skip'] === 0)
+				(isFinished || this.configuration['skip'] === 0 || i % this.configuration['skip'] === 0)
 			) {
 				this.sendNotification(pop.slice(0, this.maxResults), i, stats, isFinished);
 			}
@@ -183,9 +294,7 @@ class Genetic {
 					newPop.length + 1 < this.configuration.size // keeps us from going 1 over the max population size
 				) {
 					let parents = this.select2(pop);
-					let children = this.crossover(Clone(parents[0]), Clone(parents[1])).map(
-						this.mutateOrNot
-					);
+					let children = this.crossover(Clone(parents[0]), Clone(parents[1])).map(this.mutateOrNot);
 
 					newPop.push(children[0], children[1]);
 				} else {
@@ -250,9 +359,7 @@ class Genetic {
 
 		// make available in webworker
 		blobScript +=
-			'var Optimize = Serialization.parse("' +
-			addslashes(Serialization.stringify(Optimize)) +
-			'");\n';
+			'var Optimize = Serialization.parse("' + addslashes(Serialization.stringify(Optimize)) + '");\n';
 		blobScript +=
 			'var Select1 = Serialization.parse("' +
 			addslashes(Serialization.stringify(this.mutationSelectionFunctions)) +
@@ -263,10 +370,7 @@ class Genetic {
 			'");\n';
 
 		// materialize our ga instance in the worker
-		blobScript +=
-			'var genetic = Serialization.parse("' +
-			addslashes(Serialization.stringify(this)) +
-			'");\n';
+		blobScript += 'var genetic = Serialization.parse("' + addslashes(Serialization.stringify(this)) + '");\n';
 		blobScript += 'onmessage = function(e) { genetic.start(); }\n';
 
 		var self = this;
@@ -297,8 +401,6 @@ class Genetic {
 			})();
 		}
 	}
-
-	static evaulatePoly() {}
 }
 
 export default Genetic;
