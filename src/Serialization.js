@@ -1,5 +1,5 @@
-export default class {
-	stringify(obj) {
+class Serialization {
+	static stringify(obj) {
 		return JSON.stringify(obj, function(key, value) {
 			if (value instanceof Function || typeof value == 'function') return '__func__:' + value.toString();
 			if (value instanceof RegExp) return '__regex__:' + value;
@@ -7,7 +7,7 @@ export default class {
 		});
 	}
 
-	parse(str) {
+	static parse(str) {
 		return JSON.parse(str, function(key, value) {
 			if (typeof value != 'string') return value;
 			if (value.lastIndexOf('__func__:', 0) === 0) return eval('(' + value.slice(9) + ')');
@@ -16,3 +16,5 @@ export default class {
 		});
 	}
 }
+
+export default Serialization;
