@@ -1,9 +1,8 @@
-import { $, jQuery } from 'jquery';
 import Graph from './Graph.js';
 import Genetic from './Genetic.js';
 
-window.$ = $;
-window.jQuery = jQuery;
+var jquery = require('jquery');
+window.$ = window.jQuery = jquery;
 
 const graph = new Graph(document.getElementById('scratch'));
 const genetic = new Genetic(graph);
